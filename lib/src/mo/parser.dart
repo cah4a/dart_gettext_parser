@@ -1,43 +1,49 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import './utils/parse_header.dart';
+import '../utils/parse_header.dart';
 
 /// Parser class
 /// Contains decoding and parse logic for passed List<int>
-class Parser {
+class MoParser {
   // Magic constant to check the endianness of the input file
   static const _MAGIC = 0x950412de;
+  Encoding encoding;
 
   // Default endian for read/write
   Endian _endian = Endian.little;
   ByteData _fileContents;
   Map _table;
+
   // Offset position for original strings table
   int _offsetOriginals;
+
   // Offset position for translation strings table
   int _offsetTranslations;
+
   // GetText revision nr, usually 0
   int _revision;
+
   // Total count of translated strings
   int _total;
 
-  Parser(List<int> fileContent) {
+  MoParser(List<int> fileContent, {Encoding encoding}) {
+    this.encoding = encoding ?? utf8;
     this._fileContents = ByteData.view(Uint8List.fromList(fileContent).buffer);
 
     this._table = {
-      'charset': 'utf-8',
+      'charset': encoding.name,
       'headers': null,
       'translations': {},
     };
   }
 
   // Checks if number values in the input file are in big- or littleendian format.
-  bool _checkMagick () {
-    if (this._fileContents.getUint32(0, Endian.little) == Parser._MAGIC) {
+  bool _checkMagick() {
+    if (this._fileContents.getUint32(0, Endian.little) == MoParser._MAGIC) {
       this._endian = Endian.little;
       return true;
-    } else if (this._fileContents.getUint32(0, Endian.big) == Parser._MAGIC) {
+    } else if (this._fileContents.getUint32(0, Endian.big) == MoParser._MAGIC) {
       this._endian = Endian.big;
       return true;
     } else {
@@ -47,7 +53,7 @@ class Parser {
 
   // Read the original strings and translations from the input MO file. Use the
   // first translation string in the file as the header.
-  void _loadTranslationTable () {
+  void _loadTranslationTable() {
     int offsetOriginals = this._offsetOriginals;
     int offsetTranslations = this._offsetTranslations;
     int position, length;
@@ -60,14 +66,22 @@ class Parser {
       offsetOriginals += 4;
       position = this._fileContents.getUint32(offsetOriginals, this._endian);
       offsetOriginals += 4;
-      msgidRange = this._fileContents.buffer.asUint8List().getRange(position, position + length);
+      msgidRange = this
+          ._fileContents
+          .buffer
+          .asUint8List()
+          .getRange(position, position + length);
 
       // matching msgstr
       length = this._fileContents.getUint32(offsetTranslations, this._endian);
       offsetTranslations += 4;
       position = this._fileContents.getUint32(offsetTranslations, this._endian);
       offsetTranslations += 4;
-      msgstrRange = this._fileContents.buffer.asUint8List().getRange(position, position + length);
+      msgstrRange = this
+          ._fileContents
+          .buffer
+          .asUint8List()
+          .getRange(position, position + length);
 
       if (i == 0 && msgidRange.toList().isEmpty) {
         this._handleCharset(msgstrRange);
@@ -81,8 +95,8 @@ class Parser {
        * https://stackoverflow.com/questions/21142985/convert-a-string-from-iso-8859-2-to-utf-8-in-the-dart-language
        * https://stackoverflow.com/questions/51148729/how-to-manually-convert-between-latin-5-and-unicode-code-points
        */
-      msgid = utf8.decode(msgidRange.toList());
-      msgstr = utf8.decode(msgstrRange.toList());
+      msgid = encoding.decode(msgidRange.toList());
+      msgstr = encoding.decode(msgstrRange.toList());
 
       this._addString(msgid, msgstr);
     }
@@ -91,13 +105,13 @@ class Parser {
     this._fileContents = null;
   }
 
-  void _handleCharset (Iterable headers) {
-    String headersParsed = utf8.decode(headers.toList());
+  void _handleCharset(Iterable headers) {
+    String headersParsed = encoding.decode(headers.toList());
 
     this._table['headers'] = parseHeader(headersStr: headersParsed);
   }
 
-  void _addString (dynamic msgid, dynamic msgstr) {
+  void _addString(dynamic msgid, dynamic msgstr) {
     final Map translation = {};
     List<String> parts;
     String msgctxt, msgidPlural;
@@ -134,7 +148,7 @@ class Parser {
   }
 
   /// Parses the MO object and returns translation table
-  Map parse () {
+  Map parse() {
     if (!this._checkMagick()) {
       return null;
     }
