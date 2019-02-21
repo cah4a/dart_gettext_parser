@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import '../utils/parse_header.dart';
+import '../models/table.dart';
 
 /// Parser class
 /// Contains decoding and parse logic for passed List<int>
@@ -13,7 +14,7 @@ class MoParser {
   // Default endian for read/write
   Endian _endian = Endian.little;
   ByteData _fileContents;
-  Map _table;
+  Table _table;
 
   // Offset position for original strings table
   int _offsetOriginals;
@@ -31,11 +32,7 @@ class MoParser {
     this.encoding = encoding ?? utf8;
     this._fileContents = ByteData.view(Uint8List.fromList(fileContent).buffer);
 
-    this._table = {
-      'charset': encoding.name,
-      'headers': null,
-      'translations': {},
-    };
+    this._table = Table.fromCharset(charset: encoding.name);
   }
 
   // Checks if number values in the input file are in big- or littleendian format.
@@ -84,67 +81,29 @@ class MoParser {
           .getRange(position, position + length);
 
       if (i == 0 && msgidRange.toList().isEmpty) {
-        this._handleCharset(msgstrRange);
+        this._handleHeaders(msgstrRange);
       }
 
-      /**
-       * dart:convert support limited quantity of charsets
-       * https://api.dartlang.org/dev/2.1.1-dev.0.1/dart-convert/dart-convert-library.html
-       *
-       * More about issue
-       * https://stackoverflow.com/questions/21142985/convert-a-string-from-iso-8859-2-to-utf-8-in-the-dart-language
-       * https://stackoverflow.com/questions/51148729/how-to-manually-convert-between-latin-5-and-unicode-code-points
-       */
+      // dart:convert support limited quantity of charsets
+      // https://api.dartlang.org/dev/2.1.1-dev.0.1/dart-convert/dart-convert-library.html
+      //
+      // More about issue
+      // https://stackoverflow.com/questions/21142985/convert-a-string-from-iso-8859-2-to-utf-8-in-the-dart-language
+      // https://stackoverflow.com/questions/51148729/how-to-manually-convert-between-latin-5-and-unicode-code-points
       msgid = encoding.decode(msgidRange.toList());
       msgstr = encoding.decode(msgstrRange.toList());
 
-      this._addString(msgid, msgstr);
+      this._table.addString(msgid, msgstr);
     }
 
     // dump the file contents object
     this._fileContents = null;
   }
 
-  void _handleCharset(Iterable headers) {
+  void _handleHeaders(Iterable headers) {
     String headersParsed = encoding.decode(headers.toList());
 
-    this._table['headers'] = parseHeader(headersStr: headersParsed);
-  }
-
-  void _addString(dynamic msgid, dynamic msgstr) {
-    final Map translation = {};
-    List<String> parts;
-    String msgctxt, msgidPlural;
-
-    msgid = msgid.split('\u0004');
-    if (msgid.length > 1) {
-      msgctxt = msgid.first;
-      msgid.removeAt(0);
-      translation['msgctxt'] = msgctxt;
-    } else {
-      msgctxt = '';
-    }
-    msgid = msgid.join('\u0004');
-
-    parts = msgid.split('\u0000');
-    msgid = parts.first;
-    parts.removeAt(0);
-
-    translation['msgid'] = msgid;
-    msgidPlural = parts.join('\u0000');
-
-    if (!msgidPlural.isEmpty) {
-      translation['msgid_plural'] = msgidPlural;
-    }
-
-    msgstr = msgstr.split('\u0000');
-    translation['msgstr'] = msgstr;
-
-    if (!this._table['translations'].containsKey(msgctxt)) {
-      this._table['translations'][msgctxt] = {};
-    }
-
-    this._table['translations'][msgctxt][msgid] = translation;
+    this._table.headers = parseHeader(headersStr: headersParsed);
   }
 
   /// Parses the MO object and returns translation table
@@ -160,6 +119,6 @@ class MoParser {
 
     this._loadTranslationTable();
 
-    return this._table;
+    return this._table.toMap;
   }
 }

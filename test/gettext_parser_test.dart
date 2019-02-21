@@ -34,6 +34,20 @@ void main() {
     });
   });
 
+  group('Mo compiler', () {
+    test('utf8', () {
+      final File source = File(path.join(testFixturesPath, 'utf8-mo.json'));
+      final File result = File(path.join(testFixturesPath,'utf8.mo'));
+
+      final List<int> resultList = result.readAsBytesSync();
+      final Map json = jsonDecode(source.readAsStringSync()) as Map;
+
+      expect(
+        gettextParser.mo.compile(json),
+        equals(resultList));
+    });
+  });
+
   group('Po parser', () {
     test('utf-8', () {
       final File source = File(path.join(testFixturesPath, 'utf8.po'));

@@ -3,6 +3,7 @@ library mo_parser;
 import 'dart:convert';
 
 import './src/mo/parser.dart';
+import './src/mo/compiler.dart';
 import './src/po/parser.dart';
 
 const mo = const _Mo();
@@ -15,6 +16,13 @@ class _Mo {
   Map parse(List<int> buffer, {Encoding encoding: utf8}) {
     final parser = new MoParser(buffer, encoding: encoding);
     return parser.parse();
+  }
+
+  /// Exposes general compiler function. Takes a translation
+  /// Map as a parameter and returns binary MO object
+  List<int> compile(Map table) {
+    final compiler = new MoCompiler(table);
+    return compiler.compile();
   }
 }
 
