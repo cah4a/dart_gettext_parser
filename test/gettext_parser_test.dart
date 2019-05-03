@@ -16,7 +16,7 @@ void main() {
       final List<int> bytes = source.readAsBytesSync();
 
       expect(
-        gettextParser.mo.parse(bytes),
+        gettextParser.mo.parseBytes(bytes),
         jsonDecode(result.readAsStringSync()) as Map,
       );
     });
@@ -28,7 +28,7 @@ void main() {
       final List<int> bytes = source.readAsBytesSync();
 
       expect(
-        gettextParser.mo.parse(bytes, encoding: latin1),
+        gettextParser.mo.parseBytes(bytes, encoding: latin1),
         jsonDecode(result.readAsStringSync()) as Map,
       );
     });

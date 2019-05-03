@@ -13,7 +13,7 @@ class MoParser {
   // Default endian for read/write
   Endian _endian = Endian.little;
   ByteData _fileContents;
-  Map _table;
+  Map<String, dynamic> _table;
 
   // Offset position for original strings table
   int _offsetOriginals;
@@ -22,19 +22,18 @@ class MoParser {
   int _offsetTranslations;
 
   // GetText revision nr, usually 0
-  int _revision;
+  int _revision; // ignore:
 
   // Total count of translated strings
   int _total;
 
-  MoParser(List<int> fileContent, {Encoding encoding}) {
+  MoParser(this._fileContents, {Encoding encoding}) {
     this.encoding = encoding ?? utf8;
-    this._fileContents = ByteData.view(Uint8List.fromList(fileContent).buffer);
 
     this._table = {
       'charset': encoding.name,
       'headers': null,
-      'translations': {},
+      'translations': <String, Map<String, dynamic>>{},
     };
   }
 
@@ -141,14 +140,14 @@ class MoParser {
     translation['msgstr'] = msgstr;
 
     if (!this._table['translations'].containsKey(msgctxt)) {
-      this._table['translations'][msgctxt] = {};
+      this._table['translations'][msgctxt] = <String, dynamic>{};
     }
 
     this._table['translations'][msgctxt][msgid] = translation;
   }
 
   /// Parses the MO object and returns translation table
-  Map parse() {
+  Map<String, dynamic> parse() {
     if (!this._checkMagick()) {
       return null;
     }
