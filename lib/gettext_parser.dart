@@ -15,13 +15,13 @@ class _Mo {
   const _Mo();
 
   /// Parse mo file data with encoding
-  Map<String, dynamic> parse(ByteData data, {Encoding encoding: utf8}) {
+  Map<String, dynamic> parse(ByteData data, {Encoding encoding = utf8}) {
     final parser = MoParser(data, encoding: encoding);
     return parser.parse();
   }
 
   /// Parse mo file data with encoding
-  Map<String, dynamic> parseBytes(List<int> data, {Encoding encoding: utf8}) {
+  Map<String, dynamic> parseBytes(List<int> data, {Encoding encoding = utf8}) {
     final parser = MoParser(
       ByteData.view(Uint8List.fromList(data).buffer),
       encoding: encoding,
@@ -40,8 +40,8 @@ class _Mo {
 class _Po {
   const _Po();
 
-  /// Parse po data file with encoding
-  Map<String, dynamic> parseBytes(List<int> data, {Encoding encoding: utf8}) {
+  /// Parse po [data] file with encoding
+  Map<String, dynamic> parseBytes(List<int> data, {Encoding encoding = utf8}) {
     final parser = PoParser(encoding.decode(data));
     return parser.parse(charset: encoding.name);
   }

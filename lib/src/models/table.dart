@@ -66,7 +66,7 @@ class Table {
     translation['msgid'] = msgid;
     msgidPlural = parts.join('\u0000');
 
-    if (!msgidPlural.isEmpty) {
+    if (msgidPlural.isNotEmpty) {
       translation['msgid_plural'] = msgidPlural;
     }
 

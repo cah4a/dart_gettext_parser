@@ -16,7 +16,7 @@ class PoCompiler {
   final int foldLength;
   final Table table;
 
-  PoCompiler(Map source, {this.foldLength: 76}) : table = Table(source);
+  PoCompiler(Map source, {this.foldLength = 76}) : table = Table(source);
 
   String compile() {
     final blocks = List();
