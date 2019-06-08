@@ -1,24 +1,29 @@
 class Table {
-  String charset;
-  String contentType;
-  Map headers;
-  Map translations;
+  Map<String, String> headers = {};
+  Map<String, Map<String, dynamic>> translations = {};
+  String charset = "";
+  String contentType = 'utf-8';
 
   Table(Map table) {
-    this.headers = table['headers'] ?? {};
-    this.translations = table['translations'] ?? {};
+    assert(table["headers"] is Map &&
+        table["headers"].values.every((value) => value is String));
+    assert(table['translations'] is Map &&
+        table['translations'].values.every((value) => value is Map));
+
+    headers = Map.castFrom(table["headers"]);
+    translations = Map.castFrom(table['translations']);
 
     _handleCharset(table);
   }
 
   Table.fromCharset({String charset = 'utf-8'}) {
     this.charset = charset;
-    this.translations = {};
   }
 
   // Handles header values, replaces or adds (if needed) a charset property
   void _handleCharset(Map table) {
-    final List<String> parts = (headers['content-type'] ?? 'text/plain').split(';');
+    final List<String> parts =
+        (headers['content-type'] ?? 'text/plain').split(';');
     final String contentType = parts.first;
     parts.removeAt(0);
     // Support only utf-8 encoding

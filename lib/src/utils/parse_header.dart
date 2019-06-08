@@ -1,7 +1,7 @@
 /// Parses a header string into an object of key-value pairs
-Map parseHeader({String headersStr = ''}) {
+Map<String, String> parseHeader({String headersStr = ''}) {
   final List<String> lines = headersStr.split('\n');
-  final Map headers = {};
+  final Map<String, String> headers = {};
 
   lines.forEach((line) {
     final List<String> parts = line.trim().split(':');

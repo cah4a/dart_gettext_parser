@@ -4,31 +4,33 @@ import '../models/table.dart';
 import '../models/translation.dart';
 import '../models/sizeOfData.dart';
 
-/// Creates a MO compiler object.
+/// Converts table to mo file.
 class MoCompiler {
   Table _table;
   Endian _endian = Endian.little;
 
-  // Magic bytes for the generated binary data
+  /// Magic bytes for the generated binary data
   static const _MAGIC = 0x950412de;
 
   MoCompiler(Map table) {
     _table = Table(table);
   }
 
-  List<int> compile () {
+  Uint8List compile() {
     final List<TranslationInterface> list = _generateList();
     final SizeOfData size = SizeOfData(list);
 
     // sort by msgid
-    list.sort((a, b) => utf8.decode(a.msgid.asUint8List()).compareTo(utf8.decode(b.msgid.asUint8List())));
+    list.sort((a, b) => utf8
+        .decode(a.msgid.asUint8List())
+        .compareTo(utf8.decode(b.msgid.asUint8List())));
 
     return this._build(list, size);
   }
 
-  // Generates an List of translation strings
-  // in the form of [TranslationInterface, ...]
-  List<TranslationInterface> _generateList () {
+  /// Generates an List of translation strings
+  /// in the form of [TranslationInterface, ...]
+  List<TranslationInterface> _generateList() {
     List<TranslationInterface> list = [];
 
     list.add(HeaderTranslation(this._table.headers));
@@ -46,7 +48,8 @@ class MoCompiler {
           return;
         }
 
-        String msgidPlural = this._table.translations[msgctxt][msgid]['msgid_plural'];
+        String msgidPlural =
+            this._table.translations[msgctxt][msgid]['msgid_plural'];
         String key = msgid;
         String value;
         List msgstr = this._table.translations[msgctxt][msgid]['msgstr'] ?? [];
@@ -68,7 +71,7 @@ class MoCompiler {
     return list;
   }
 
-  List<int> _build (List<TranslationInterface> list, SizeOfData size) {
+  Uint8List _build(List<TranslationInterface> list, SizeOfData size) {
     ByteData returnBuffer = ByteData.view(Uint8List(size.total).buffer);
     int currentPosition = 0;
 
@@ -85,23 +88,25 @@ class MoCompiler {
     returnBuffer.setUint32(12, 28, _endian);
 
     // translation string table offset
-    returnBuffer.setUint32(16, 28 + (4 + 4)*list.length, _endian);
+    returnBuffer.setUint32(16, 28 + (4 + 4) * list.length, _endian);
 
     // hash table size
     returnBuffer.setUint32(20, 0, _endian);
 
     // hash table offset
-    returnBuffer.setUint32(24, 28 + (4 + 4)*list.length*2, _endian);
+    returnBuffer.setUint32(24, 28 + (4 + 4) * list.length * 2, _endian);
 
     // build originals table
-    currentPosition = 28 + 2*(4 + 4)*list.length;
+    currentPosition = 28 + 2 * (4 + 4) * list.length;
     for (int i = 0, len = list.length; i < len; i++) {
       final Uint8List copy = list[i].msgid.asUint8List();
 
-      returnBuffer.buffer.asUint8List().setRange(currentPosition, currentPosition + copy.length, copy);
+      returnBuffer.buffer
+          .asUint8List()
+          .setRange(currentPosition, currentPosition + copy.length, copy);
 
-      returnBuffer.setUint32(28 + i*8, copy.length, _endian);
-      returnBuffer.setUint32(28 + i*8 + 4, currentPosition, _endian);
+      returnBuffer.setUint32(28 + i * 8, copy.length, _endian);
+      returnBuffer.setUint32(28 + i * 8 + 4, currentPosition, _endian);
       returnBuffer.setUint8(currentPosition + copy.length, 0x00);
 
       currentPosition += copy.length + 1;
@@ -111,10 +116,14 @@ class MoCompiler {
     for (int i = 0, len = list.length; i < len; i++) {
       final Uint8List copy = list[i].msgstr.asUint8List();
 
-      returnBuffer.buffer.asUint8List().setRange(currentPosition, currentPosition + copy.length, copy);
+      returnBuffer.buffer
+          .asUint8List()
+          .setRange(currentPosition, currentPosition + copy.length, copy);
 
-      returnBuffer.setUint32(28 + (4 + 4)*list.length + i*8, copy.length, _endian);
-      returnBuffer.setUint32(28 + (4 + 4)*list.length + i*8 + 4, currentPosition, _endian);
+      returnBuffer.setUint32(
+          28 + (4 + 4) * list.length + i * 8, copy.length, _endian);
+      returnBuffer.setUint32(
+          28 + (4 + 4) * list.length + i * 8 + 4, currentPosition, _endian);
       returnBuffer.setUint8(currentPosition + copy.length, 0x00);
 
       currentPosition += copy.length + 1;

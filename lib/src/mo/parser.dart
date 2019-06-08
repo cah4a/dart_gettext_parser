@@ -23,14 +23,13 @@ class MoParser {
   int _offsetTranslations;
 
   // GetText revision nr, usually 0
-  int _revision;
+  int _revision; // ignore: unused_field
 
   // Total count of translated strings
   int _total;
 
-  MoParser(List<int> fileContent, {Encoding encoding}) {
+  MoParser(this._fileContents, {Encoding encoding}) {
     this.encoding = encoding ?? utf8;
-    this._fileContents = ByteData.view(Uint8List.fromList(fileContent).buffer);
 
     this._table = Table.fromCharset(charset: encoding.name);
   }
@@ -107,7 +106,7 @@ class MoParser {
   }
 
   /// Parses the MO object and returns translation table
-  Map parse() {
+  Map<String, dynamic> parse() {
     if (!this._checkMagick()) {
       return null;
     }

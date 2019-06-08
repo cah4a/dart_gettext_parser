@@ -1,6 +1,6 @@
 name: gettext_parser
-description: Parse and compile gettext po and mo files with dart
-version: 0.0.1
+description: Platform agnostic lib to parse and compile gettext po and mo files with dart 
+version: 0.1.0
 author: Alexander Kozlov <cah4o3@gmail.com>
 homepage: https://github.com/cah4a/dart_gettext_parser
 

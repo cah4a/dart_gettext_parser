@@ -3,15 +3,15 @@ class PoParser {
 
   PoParser(this.data);
 
-  Map parse({String charset}) {
+  Map<String, dynamic> parse({String charset}) {
     final nodes = data.split("\n").map(Node.parse).fold(
-          new List<Node>(),
-          _combine,
-        );
+      new List<Node>(),
+      _combine,
+    );
 
     final list = nodes.fold(
       new List<Map<String, dynamic>>(),
-      (List<Map<String, dynamic>> result, node) {
+          (List<Map<String, dynamic>> result, node) {
         if (result.isEmpty || node is BlockEnd) {
           result.add(new Map<String, dynamic>());
         }
@@ -45,7 +45,7 @@ class PoParser {
     final headers = new Map<String, String>();
 
     final head = list.firstWhere(
-      (item) => item["msgid"] == "",
+          (item) => item["msgid"] == "",
       orElse: () => null,
     );
 
@@ -55,7 +55,7 @@ class PoParser {
           .split("\n")
           .where(
             (line) => line.contains(": "),
-          )
+      )
           .map((line) {
         final delim = line.indexOf(": ");
         final key = line.substring(0, delim).toLowerCase();
@@ -66,7 +66,7 @@ class PoParser {
     final translations = new Map<String, Map<String, dynamic>>();
 
     list.forEach(
-      (item) {
+          (item) {
         final ctx = item["msgctxt"] ?? "";
         final id = item["msgid"] ?? "";
 

@@ -1,14 +1,7 @@
 # Dart gettext mo/po parser
 
 Parse and compile gettext po and mo files with dart.
-Port of npm package [gettext-parser](https://github.com/smhg/gettext-parser).
-
-## Readiness
-
-- [x] Mo parse
-- [ ] Mo compile
-- [x] Po parse
-- [ ] Po compile
+Ported [gettext-parser](https://github.com/smhg/gettext-parser) npm package to dartlang.
 
 ## Usage
 
@@ -23,27 +16,42 @@ Import library:
 import 'package:gettext_parser/gettext_parser.dart' as gettextParser;
 ```
 
-### Parse Mo Files:
-```dart
-Map translateTable = gettextParser.mo.parse(
-    file.readAsBytesSync(),
-);
-```
-
-### Parse Po Files:
+### Parse .po files:
 ```dart
 Map translateTable = gettextParser.po.parse(
     file.readAsStringSync(),
 );
 ```
 
+### Parse .mo files:
+```dart
+Map translateTable = gettextParser.mo.parse(
+    file.readAsBytesSync(),
+);
+```
+
+### Compile .po files:
+```dart
+String data = gettextParser.po.compile(
+    translateTable,
+);
+```
+
+### Compile .mo files:
+```dart
+UInt8List data = gettextParser.mo.compile(
+    translateTable,
+);
+```
+
 ## Encoding
-`gettext_parser` use `Encoding` interface for encoding and decoding charsets from `dart:convert` package with utf8, base64, latin1 built-in encoders. If you need other encoding you could implement `Encoding` interface by your own.
+`gettext_parser` use `Encoding` interface for encoding and decoding charsets from `dart:convert` package with utf8, base64, latin1 built-in encoders.
+If you need other encoding you could implement `Encoding` interface by your own.
 
 Example:
 ```
 gettextParser.mo.parse(buffer, encoding: latin1);
-gettextParser.po.parseRaw(buffer, encoding: latin1);
+gettextParser.po.parse(buffer, encoding: latin1);
 ```
 
 ## Data structure of parsed mo/po files
@@ -103,7 +111,10 @@ Example
 }
 ```
 
-Notice that the structure has both a `headers` object and a `""` translation with the header string. When compiling the structure to a *mo* or a *po* file, the `headers` object is used to define the header. Header string in the `""` translation is just for reference (includes the original unmodified data) but will not be used when compiling. So if you need to add or alter header values, use only the `headers` object.
+Notice that the structure has both a `headers` object and a `""` translation with the header string.
+When compiling the structure to a *mo* or a *po* file, the `headers` object is used to define the header.
+Header string in the `""` translation is just for reference (includes the original unmodified data) but
+will not be used when compiling. So if you need to add or alter header values, use only the `headers` object.
 
 ## License
 
