@@ -4,7 +4,7 @@ class PoParser {
   PoParser(this.data);
 
   Map<String, dynamic> parse({String charset}) {
-    final nodes = data.split("\n").map(Node.parse).fold(
+    final nodes = data.split(RegExp(r'\r?\n')).map(Node.parse).fold(
       new List<Node>(),
       _combine,
     );
