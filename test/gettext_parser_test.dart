@@ -18,7 +18,7 @@ void main() {
 
       expect(
         gettextParser.mo.parseBytes(bytes),
-        json.decode(result.readAsStringSync()) as Map,
+        json.decode(result.readAsStringSync()) as Map?,
       );
     });
 
@@ -30,7 +30,7 @@ void main() {
 
       expect(
         gettextParser.mo.parseBytes(bytes, encoding: latin1),
-        jsonDecode(result.readAsStringSync()) as Map,
+        jsonDecode(result.readAsStringSync()) as Map?,
       );
     });
   });
@@ -56,7 +56,7 @@ void main() {
 
       expect(
         gettextParser.po.parse(text),
-        jsonDecode(expected.readAsStringSync()) as Map,
+        jsonDecode(expected.readAsStringSync()) as Map?,
       );
     });
 
@@ -68,7 +68,7 @@ void main() {
 
       expect(
         gettextParser.po.parseBytes(bytes, encoding: latin1),
-        jsonDecode(expected.readAsStringSync()) as Map,
+        jsonDecode(expected.readAsStringSync()) as Map?,
       );
     });
   });

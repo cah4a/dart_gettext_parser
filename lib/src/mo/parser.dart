@@ -9,29 +9,15 @@ import '../models/table.dart';
 class MoParser {
   // Magic constant to check the endianness of the input file
   static const _MAGIC = 0x950412de;
-  Encoding encoding;
+  final Encoding encoding;
 
   // Default endian for read/write
   Endian _endian = Endian.little;
-  ByteData _fileContents;
-  Table _table;
+  final ByteData _fileContents;
+  late Table _table;
 
-  // Offset position for original strings table
-  int _offsetOriginals;
-
-  // Offset position for translation strings table
-  int _offsetTranslations;
-
-  // GetText revision nr, usually 0
-  int _revision; // ignore: unused_field
-
-  // Total count of translated strings
-  int _total;
-
-  MoParser(this._fileContents, {Encoding encoding}) {
-    this.encoding = encoding ?? utf8;
-
-    this._table = Table.fromCharset(charset: encoding.name);
+  MoParser(this._fileContents, {required this.encoding}) {
+    this._table = Table.fromCharset(charset: this.encoding.name);
   }
 
   // Checks if number values in the input file are in big- or littleendian format.
@@ -49,14 +35,17 @@ class MoParser {
 
   // Read the original strings and translations from the input MO file. Use the
   // first translation string in the file as the header.
-  void _loadTranslationTable() {
-    int offsetOriginals = this._offsetOriginals;
-    int offsetTranslations = this._offsetTranslations;
+  void _loadTranslationTable({
+    required int offsetOriginals,
+    required int offsetTranslations,
+    required int total,
+    int? revision,
+  }) {
     int position, length;
     String msgid, msgstr;
     Iterable msgidRange, msgstrRange;
 
-    for (int i = 0; i < this._total; i++) {
+    for (int i = 0; i < total; i++) {
       // msgid string
       length = this._fileContents.getUint32(offsetOriginals, this._endian);
       offsetOriginals += 4;
@@ -89,18 +78,15 @@ class MoParser {
       // More about issue
       // https://stackoverflow.com/questions/21142985/convert-a-string-from-iso-8859-2-to-utf-8-in-the-dart-language
       // https://stackoverflow.com/questions/51148729/how-to-manually-convert-between-latin-5-and-unicode-code-points
-      msgid = encoding.decode(msgidRange.toList());
-      msgstr = encoding.decode(msgstrRange.toList());
+      msgid = encoding.decode(msgidRange.toList() as List<int>);
+      msgstr = encoding.decode(msgstrRange.toList() as List<int>);
 
       this._table.addString(msgid, msgstr);
     }
-
-    // dump the file contents object
-    this._fileContents = null;
   }
 
   void _handleHeaders(Iterable headers) {
-    String headersParsed = encoding.decode(headers.toList());
+    String headersParsed = encoding.decode(headers.toList() as List<int>);
 
     this._table.headers = parseHeader(headersStr: headersParsed);
   }
@@ -108,15 +94,21 @@ class MoParser {
   /// Parses the MO object and returns translation table
   Map<String, dynamic> parse() {
     if (!this._checkMagick()) {
-      return null;
+      throw FormatException("Wrong gettext format");
     }
 
-    this._revision = this._fileContents.getUint32(4, this._endian);
-    this._total = this._fileContents.getUint32(8, this._endian);
-    this._offsetOriginals = this._fileContents.getUint32(12, this._endian);
-    this._offsetTranslations = this._fileContents.getUint32(16, this._endian);
+    // order is important
+    final revision = this._fileContents.getUint32(4, this._endian);
+    final total = this._fileContents.getUint32(8, this._endian);
+    final offsetOriginals = this._fileContents.getUint32(12, this._endian);
+    final offsetTranslations = this._fileContents.getUint32(16, this._endian);
 
-    this._loadTranslationTable();
+    this._loadTranslationTable(
+      revision: revision,
+      total: total,
+      offsetOriginals: offsetOriginals,
+      offsetTranslations: offsetTranslations,
+    );
 
     return this._table.toMap;
   }

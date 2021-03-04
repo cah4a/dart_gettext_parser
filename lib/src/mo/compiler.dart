@@ -6,7 +6,7 @@ import '../models/sizeOfData.dart';
 
 /// Converts table to mo file.
 class MoCompiler {
-  Table _table;
+  late Table _table;
   Endian _endian = Endian.little;
 
   /// Magic bytes for the generated binary data
@@ -35,24 +35,17 @@ class MoCompiler {
 
     list.add(HeaderTranslation(this._table.headers));
 
-    this._table.translations.keys.forEach((msgctxt) {
-      if (this._table.translations[msgctxt] is! Map) {
-        return;
-      }
-
-      this._table.translations[msgctxt].keys.forEach((String msgid) {
-        if (this._table.translations[msgctxt][msgid] is! Map) {
-          return;
-        }
+    this._table.translations.forEach((msgctxt, context) {
+      context.forEach((msgid, messages) {
         if (msgctxt == '' && msgid == '') {
           return;
         }
 
-        String msgidPlural =
-            this._table.translations[msgctxt][msgid]['msgid_plural'];
+        final msgidPlural = messages['msgid_plural'];
+        final msgstr = messages['msgstr'] ?? [];
+
         String key = msgid;
         String value;
-        List msgstr = this._table.translations[msgctxt][msgid]['msgstr'] ?? [];
 
         if (msgctxt.toString().isNotEmpty) {
           key = '${msgctxt}\u0004${key}';

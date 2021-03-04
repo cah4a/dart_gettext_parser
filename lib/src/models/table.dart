@@ -44,22 +44,21 @@ class Table {
     this.headers['content-type'] = '${contentType}; ${params.join('; ')}';
   }
 
-  void addString(dynamic msgid, dynamic msgstr) {
+  void addString(String msgid, String msgstr) {
     final Map translation = {};
-    List<String> parts;
     String msgctxt, msgidPlural;
 
-    msgid = msgid.split('\u0004');
-    if (msgid.length > 1) {
-      msgctxt = msgid.first;
-      msgid.removeAt(0);
+    final ids = msgid.split('\u0004');
+    if (ids.length > 1) {
+      msgctxt = ids.first;
+      ids.removeAt(0);
       translation['msgctxt'] = msgctxt;
     } else {
       msgctxt = '';
     }
-    msgid = msgid.join('\u0004');
+    msgid = ids.join('\u0004');
 
-    parts = msgid.split('\u0000');
+    final parts = msgid.split('\u0000');
     msgid = parts.first;
     parts.removeAt(0);
 
@@ -70,17 +69,16 @@ class Table {
       translation['msgid_plural'] = msgidPlural;
     }
 
-    msgstr = msgstr.split('\u0000');
-    translation['msgstr'] = msgstr;
+    translation['msgstr'] = msgstr.split('\u0000');
 
     if (!this.translations.containsKey(msgctxt)) {
       this.translations[msgctxt] = {};
     }
 
-    this.translations[msgctxt][msgid] = translation;
+    this.translations[msgctxt]![msgid] = translation;
   }
 
-  get toMap {
+  Map<String, dynamic> get toMap {
     return {
       'charset': this.charset,
       'headers': this.headers,

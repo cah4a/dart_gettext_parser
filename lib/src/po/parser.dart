@@ -1,19 +1,21 @@
+import '../utils/try_find.dart';
+
 class PoParser {
   final String data;
 
   PoParser(this.data);
 
-  Map<String, dynamic> parse({String charset}) {
+  Map<String, dynamic> parse({String? charset}) {
     final nodes = data.split(RegExp(r'\r?\n')).map(Node.parse).fold(
-      new List<Node>(),
+      <Node>[],
       _combine,
     );
 
     final list = nodes.fold(
-      new List<Map<String, dynamic>>(),
-          (List<Map<String, dynamic>> result, node) {
+      <Map<String, dynamic>>[],
+      (List<Map<String, dynamic>> result, node) {
         if (result.isEmpty || node is BlockEnd) {
-          result.add(new Map<String, dynamic>());
+          result.add(<String, dynamic>{});
         }
 
         final item = result.last;
@@ -29,7 +31,7 @@ class PoParser {
         if (node is Token) {
           if (node.type == "msgstr") {
             if (!item.containsKey(node.type)) {
-              item[node.type] = new List<String>();
+              item[node.type] = <String>[];
             }
 
             (item[node.type] as List).add(node.text);
@@ -44,10 +46,7 @@ class PoParser {
 
     final headers = new Map<String, String>();
 
-    final head = list.firstWhere(
-          (item) => item["msgid"] == "",
-      orElse: () => null,
-    );
+    final head = list.tryFind((item) => item["msgid"] == "");
 
     if (head != null && head["msgstr"] != null) {
       final String comments = head["msgstr"].join("");
@@ -55,7 +54,7 @@ class PoParser {
           .split("\n")
           .where(
             (line) => line.contains(": "),
-      )
+          )
           .map((line) {
         final delim = line.indexOf(": ");
         final key = line.substring(0, delim).toLowerCase();
@@ -66,7 +65,7 @@ class PoParser {
     final translations = new Map<String, Map<String, dynamic>>();
 
     list.forEach(
-          (item) {
+      (item) {
         final ctx = item["msgctxt"] ?? "";
         final id = item["msgid"] ?? "";
 
@@ -74,7 +73,7 @@ class PoParser {
           translations[ctx] = new Map<String, dynamic>();
         }
 
-        translations[ctx][id] = item;
+        translations[ctx]![id] = item;
       },
     );
 
@@ -119,10 +118,10 @@ class Node {
 }
 
 class Comment extends Node {
-  String text;
-  String type;
+  late String text;
+  late String type;
 
-  Comment(String text) : assert(text != null) {
+  Comment(String text) {
     if (text.length >= 2 && text[1] == " ") {
       switch (text[0]) {
         case ":":
@@ -160,8 +159,8 @@ class Comment extends Node {
 }
 
 class Token extends Node {
-  String type;
-  String text;
+  late String type;
+  late String text;
   int index = 0;
 
   Token(String line) {
