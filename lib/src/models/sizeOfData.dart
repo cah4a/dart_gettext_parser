@@ -1,9 +1,9 @@
 import './translation.dart';
 
 class SizeOfData {
-  int msgid;
-  int msgstr;
-  int total;
+  late int msgid;
+  late int msgstr;
+  late int total;
 
   SizeOfData(List<TranslationInterface> list) {
     int msgidLength = 0, msgstrLength = 0, totalLength = 0;

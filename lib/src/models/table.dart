@@ -46,7 +46,7 @@ class Table {
 
   void addString(dynamic msgid, dynamic msgstr) {
     final Map translation = {};
-    List<String> parts;
+    List<String>? parts;
     String msgctxt, msgidPlural;
 
     msgid = msgid.split('\u0004');
@@ -60,7 +60,7 @@ class Table {
     msgid = msgid.join('\u0004');
 
     parts = msgid.split('\u0000');
-    msgid = parts.first;
+    msgid = parts!.first;
     parts.removeAt(0);
 
     translation['msgid'] = msgid;
@@ -77,7 +77,7 @@ class Table {
       this.translations[msgctxt] = {};
     }
 
-    this.translations[msgctxt][msgid] = translation;
+    this.translations[msgctxt]![msgid] = translation;
   }
 
   get toMap {

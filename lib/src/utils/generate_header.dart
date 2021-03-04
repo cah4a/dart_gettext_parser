@@ -1,7 +1,7 @@
-import '../utils/upper_case_words.dart';
+import './upper_case_words.dart';
 
 /// Joins a header object of key value pairs into a header string
-String generateHeader (Map headers) {
+String generateHeader(Map headers) {
   List lines = [];
 
   headers.keys.forEach((key) {
